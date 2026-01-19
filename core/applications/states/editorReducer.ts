@@ -1,0 +1,267 @@
+import { EditorState } from "./editorState";
+import { EditorActions } from "./editorAction";
+import { resizeSegment } from "@/core/shared/utils/resizeSegment";
+import { normalizeSegments } from "@/core/shared/utils/normalizeSegment";
+import { constrainOverlay } from "@/core/domain/services/constrainOverlay";
+
+export function editorReducer(
+  state: EditorState,
+  action: EditorActions
+): EditorState {
+  switch (action.type) {
+    case "PLAY":
+      return { ...state, isPlaying: true };
+
+    case "PAUSE":
+      return { ...state, isPlaying: false };
+
+    /**
+     * User-driven seek (timeline click / drag)
+     */
+    case "SET_TIME":
+      return {
+        ...state,
+        currentTime: Math.max(0, action.payload),
+      };
+
+    /**
+     * Playback-driven time progression (Phase-3)
+     */
+    case "TICK":
+      const nextTime = state.currentTime + action.payload;
+      console.log(
+        "[STATE] TICK:",
+        "delta =", action.payload.toFixed(3),
+        "→ currentTime =", nextTime.toFixed(3)
+      );
+      return {
+        ...state,
+        currentTime: Math.max(0, nextTime),
+      };
+
+    case "ADD_SEGMENT": {
+      if (!state.timeline) return state;
+
+      const lastSegment =
+        state.timeline.segments[state.timeline.segments.length - 1];
+
+      const startTime = lastSegment
+        ? lastSegment.startTime + lastSegment.duration
+        : 0;
+
+      const newSegment = {
+        ...action.payload,
+        startTime,
+      };
+
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          segments: [...state.timeline.segments, newSegment],
+        },
+      };
+    }
+
+    case "MOVE_SEGMENT": {
+      if (!state.timeline) return state;
+
+      const { segmentId, delta } = action.payload;
+
+      const updatedSegments = state.timeline.segments.map((seg) =>
+        seg.id === segmentId
+          ? {
+            ...seg,
+            startTime: Math.max(0, seg.startTime + delta),
+          }
+          : { ...seg }
+      );
+
+      const normalized = normalizeSegments(updatedSegments);
+
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          segments: normalized,
+        },
+      };
+    }
+
+    /**
+     * Resize segment (already Phase-3 safe)
+     */
+    case "RESIZE_SEGMENT": {
+      const segments = resizeSegment(
+        state.timeline.segments,
+        action.payload.segmentId,
+        action.payload.delta,
+        action.payload.edge
+      );
+
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          segments,
+        },
+      };
+    }
+
+    /**
+     * Overlay creation
+     */
+    // case "ADD_OVERLAY":
+    //   return {
+    //     ...state,
+    //     timeline: {
+    //       ...state.timeline,
+    //       overlays: [...state.timeline.overlays, action.payload],
+    //     },
+    //   };
+    case "ADD_OVERLAY":
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          overlays: [...state.timeline.overlays, action.payload],
+        },
+      };
+
+    /**
+     * Overlay geometry update
+     */
+    case "UPDATE_OVERLAY_GEOMETRY":
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          overlays: state.timeline.overlays.map((overlay) =>
+            overlay.id === action.payload.overlayId
+              ? { ...overlay, geometry: action.payload.geometry }
+              : overlay
+          ),
+        },
+      };
+
+    /**
+     * Overlay timing mapping
+     */
+    case "ADD_OVERLAY_TIMING":
+      return {
+        ...state,
+        overlayTimings: [...state.overlayTimings, action.payload],
+      };
+
+    case "MOVE_OVERLAY": {
+      const overlay =
+        state.timeline.overlays.find(
+          o => o.id === action.payload.overlayId
+        )
+
+      if (!overlay) return state // defensive, no crash
+
+      const next = constrainOverlay({
+        ...overlay.geometry,
+        x: overlay.geometry.x + action.payload.dx,
+        y: overlay.geometry.y + action.payload.dy,
+      })
+
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          overlays: state.timeline.overlays.map(o =>
+            o.id === overlay.id
+              ? { ...o, geometry: next }
+              : o
+          ),
+        },
+      }
+    }
+
+    case "RESIZE_OVERLAY": {
+      const overlay = state.timeline.overlays.find(
+        o => o.id === action.payload.overlayId
+      );
+      if (!overlay) return state;
+
+      const next = constrainOverlay({
+        ...overlay.geometry,
+        ...action.payload.geometry,
+      });
+
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          overlays: state.timeline.overlays.map(o =>
+            o.id === overlay.id ? { ...o, geometry: next } : o
+          ),
+        },
+      };
+    }
+
+    case "UPDATE_OVERLAY_CONTENT": {
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          overlays: state.timeline.overlays.map(o =>
+            o.id === action.payload.overlayId
+              ? { ...o, ...action.payload }
+              : o
+          ),
+        },
+      }
+    }
+    case "UPDATE_TEXT_STYLE": {
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          overlays: state.timeline.overlays.map(o =>
+            o.id === action.payload.overlayId
+              ? {
+                ...o,
+                textStyle: {
+                  fontSize: o.textStyle?.fontSize ?? 16,
+                  color: o.textStyle?.color ?? "#ffffff",
+                  backgroundColor:
+                    o.textStyle?.backgroundColor ?? "#000000",
+                  backgroundOpacity:
+                    o.textStyle?.backgroundOpacity ?? 0.4,
+                  ...action.payload.style,
+                },
+              }
+              : o
+          ),
+        },
+      }
+    }
+
+
+    case "SELECT_OVERLAY":
+      return {
+        ...state,
+        selectedOverlayId: action.payload.overlayId,
+        editingOverlayId: null,
+      }
+
+    case "START_EDIT_TEXT":
+      return {
+        ...state,
+        selectedOverlayId: action.payload.overlayId,
+        editingOverlayId: action.payload.overlayId,
+      }
+
+    case "DESELECT_OVERLAY":
+      return {
+        ...state,
+        selectedOverlayId: null,
+        editingOverlayId: null,
+      }
+    default:
+      return state;
+  }
+}
