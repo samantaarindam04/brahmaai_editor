@@ -27,7 +27,6 @@ export class VideoPlayerController {
         const time = this.player!.currentTime();
 
         if (typeof time === "number") {
-          console.log("[VIDEO] timeupdate:", time.toFixed(3));
           callbacks.onTimeUpdate?.(time);
         }
       });
@@ -81,8 +80,6 @@ play(): void {
 
   pause(): void {
     if (!this.player) return;
-    
-    console.log("[VIDEO] Pause called");
     this.player.pause();
   }
 

@@ -229,11 +229,12 @@ export function Timeline() {
                   No video segments added
                 </div>
               ) : (
-                state.timeline.segments.map((seg) => (
+                state.timeline.segments.map((seg, index) => (
                   <TimelineSegment
                     key={seg.id}
                     segment={seg}
                     px={pxPerSec}
+                    index={index}
                   />
                 ))
               )}

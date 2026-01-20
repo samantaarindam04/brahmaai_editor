@@ -69,9 +69,9 @@ export default function Playhead({
   return (
     <div
       ref={ref}
-      className="absolute top-0 bottom-0 w-px bg-red-500 will-change-transform"
+      className="absolute top-0 bottom-0 w-0.5 bg-red-500 will-change-transform"
     >
-      <div className="absolute -top-1 -left-2 w-3 h-3 bg-red-500 rounded-full" />
+      <div className="absolute -top-1 -left-2 w-1 h-1 bg-red-500 rounded-full" />
     </div>
   );
 }

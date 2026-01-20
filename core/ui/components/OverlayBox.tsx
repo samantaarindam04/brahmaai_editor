@@ -142,7 +142,6 @@ export function OverlayBox({
 
               setTimeout(() => {
                 const textElement = e.currentTarget;
-                textElement.focus();
                 const range = document.createRange();
                 range.selectNodeContents(textElement);
                 const sel = window.getSelection();

@@ -7,9 +7,10 @@ import { VideoSegment } from "@/core/domain/entities/videoSegment";
 interface Props {
   segment: VideoSegment;
   px: number;
+  index: number;
 }
 
-export default function TimelineSegment({ segment, px }: Props) {
+export default function TimelineSegment({ segment, px, index }: Props) {
   const { dispatch } = useEditor();
 
   const dragStartX = useRef<number | null>(null);
@@ -94,7 +95,7 @@ export default function TimelineSegment({ segment, px }: Props) {
         onMouseDown={(e) => onResizeMouseDown(e, "start")}
         className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize bg-blue-800"
       />
-      {segment.source}
+      Video {index + 1}
       <div
         onMouseDown={(e) => onResizeMouseDown(e, "end")}
         className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize bg-blue-800"
