@@ -69,13 +69,8 @@ export class VideoPlayerController {
 
 play(): void {
     if (!this.player) return;
-    const playPromise = this.player.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.catch((err) => {
-        console.error("[VIDEO] Play failed:", err);
-      });
-    }
+    this.player.play();
+  
   }
 
   pause(): void {

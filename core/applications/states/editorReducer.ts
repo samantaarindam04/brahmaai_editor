@@ -26,17 +26,25 @@ export function editorReducer(
         currentTime: Math.max(0, action.payload),
       };
 
-    case "TICK":
+    case "TICK": {
+      if (!state.timeline) return state;
+
+      const duration = state.timeline.duration ?? 0;
       const nextTime = state.currentTime + action.payload;
-      console.log(
-        "[STATE] TICK:",
-        "delta =", action.payload.toFixed(3),
-        "→ currentTime =", nextTime.toFixed(3)
-      );
+
+      if (nextTime >= duration) {
+        return {
+          ...state,
+          currentTime: 0,
+          isPlaying: false,
+        };
+      }
+
       return {
         ...state,
         currentTime: Math.max(0, nextTime),
       };
+    }
 
     case "ADD_SEGMENT": {
       if (!state.timeline) return state;
@@ -143,7 +151,7 @@ export function editorReducer(
           o => o.id === action.payload.overlayId
         )
 
-      if (!overlay) return state 
+      if (!overlay) return state
 
       const next = constrainOverlay({
         ...overlay.geometry,
