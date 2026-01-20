@@ -78,14 +78,14 @@ export function EditorToolbar() {
   }
 
   return (
-    <div className="editor-toolbar border-b border-gray-700 p-3 flex items-center justify-between bg-gray-900">
+    <div className="editor-toolbar border-b border-gray-700 p-3 flex items-center justify-between bg-[#181818]">
       <div className="text-white font-semibold mr-4">
         Video Editor
       </div>
 
       <div className="flex gap-2">
         {/* ADD VIDEO */}
-        <label className="bg-white px-3 py-1 rounded-md cursor-pointer text-sm">
+        <label className="bg-gray-600 px-4 py-2 text-white cursor-pointer text-sm rounded-sm">
           + Add Video
           <input
             type="file"
@@ -98,7 +98,7 @@ export function EditorToolbar() {
         {/* ADD OVERLAY */}
         <button
           onClick={handleAddOverlay}
-          className="bg-white px-3 py-1 rounded-md text-sm"
+          className="bg-gray-600 px-4 py-2 text-white cursor-pointer text-sm rounded-sm"
         >
           + Add Overlay
         </button>
@@ -106,17 +106,17 @@ export function EditorToolbar() {
         {/* PLAY / PAUSE */}
         <button
           onClick={handlePlayPause}
-          className="bg-white px-3 py-1 rounded-md text-sm"
+          className="bg-blue-500 px-4 py-2 text-white text-sm rounded-sm"
         >
-          {state.isPlaying ? "⏸ Pause" : "▶ Play"}
+          {state.isPlaying ? "⏸ Pause" : "▶ Play All"}
         </button>
 
         {/* Export JSON */}
         <button
           onClick={handleExportJson}
-          className="bg-white px-3 py-1 rounded-md text-sm"
+          className="bg-gray-600 px-4 py-2 text-white cursor-pointer text-sm rounded-sm"
         >
-          Export JSON
+          Export Timeline
         </button>
 
       </div>

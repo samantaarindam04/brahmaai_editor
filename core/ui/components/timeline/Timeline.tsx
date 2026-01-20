@@ -33,7 +33,7 @@ export function Timeline() {
   }, []);
 
   function formatTime(sec: number) {
-    if (sec === 0) return "00";
+    if (sec === 0) return "0.00";
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
@@ -117,7 +117,7 @@ export function Timeline() {
                   <div className="w-px h-11 bg-neutral-600" />
 
                   {isMajor && (
-                    <div className="absolute bottom-2 left-2 text-sm text-gray-400 whitespace-nowrap">
+                    <div className="absolute bottom-2 left-1 text-xs text-gray-400 whitespace-nowrap">
                       {formatTime(sec)}
                     </div>
                   )}
@@ -177,12 +177,6 @@ export function Timeline() {
                         type: "SELECT_OVERLAY",
                         payload: { overlayId: overlay.id },
                       });
-
-                      // ✅ REMOVED: This was causing the playhead to jump
-                      // dispatch({
-                      //   type: "SET_TIME",
-                      //   payload: absoluteStartTime,
-                      // });
 
                       const startX = e.clientX;
                       const initialStartTime = timing.startTime;
