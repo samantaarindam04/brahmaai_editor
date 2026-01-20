@@ -179,6 +179,16 @@ export function Timeline() {
                     }}
                     onMouseDown={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
+                      dispatch({
+                        type: "SET_TIME",
+                        payload: absoluteStartTime,
+                      });
+
+                      dispatch({
+                        type: "SELECT_OVERLAY",
+                        payload: { overlayId: overlay.id },
+                      });
 
                       const startX = e.clientX;
                       const initialStartTime = timing.startTime;

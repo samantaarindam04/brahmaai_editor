@@ -27,19 +27,29 @@ export function OverlayBox({
   const dispatch = useEditorDispatch();
   const start = useRef<{ x: number; y: number } | null>(null);
 
-  /* ---------- overlay box click (select + drag only) ---------- */
+  /* ---------- overlay box click (select + drag) ---------- */
   function onOverlayMouseDown(e: React.MouseEvent) {
-    e.preventDefault();
+    // ✅ BLOCK all interactions during playback
+    if (state.isPlaying) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
     e.stopPropagation();
 
-    dispatch({
-      type: "SELECT_OVERLAY",
-      payload: { overlayId: overlay.id },
-    });
+    // Only select if not clicking on the text element
+    const target = e.target as HTMLElement;
+    if (!target.closest('[contenteditable]')) {
+      dispatch({
+        type: "SELECT_OVERLAY",
+        payload: { overlayId: overlay.id },
+      });
 
-    start.current = { x: e.clientX, y: e.clientY };
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
+      start.current = { x: e.clientX, y: e.clientY };
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    }
   }
 
   function onMove(e: MouseEvent) {
@@ -69,14 +79,16 @@ export function OverlayBox({
   const bgColor = overlay.textStyle?.backgroundColor ?? "#000000";
   const bgOpacity = overlay.textStyle?.backgroundOpacity ?? 0.4;
 
+  const isSelected = state.selectedOverlayId === overlay.id;
   const isEditingText = state.editingOverlayId === overlay.id;
 
   return (
     <div
       data-overlay-root
       onMouseDown={onOverlayMouseDown}
-      className="overlay-box cursor-move"
+      className={`overlay-box ${!state.isPlaying ? 'cursor-move' : 'pointer-events-none'} ${isSelected && !state.isPlaying ? '' : ''}`}
       style={{
+        position: 'absolute',
         left: `${overlay.geometry.x * 100}%`,
         top: `${overlay.geometry.y * 100}%`,
         width: `${overlay.geometry.width * 100}%`,
@@ -84,8 +96,8 @@ export function OverlayBox({
         backgroundColor: hexToRgba(bgColor, bgOpacity),
       }}
     >
-      {/* TEXT STYLE CONTROLS — ONLY WHEN TEXT CLICKED */}
-      {isEditingText && (
+      {/* TEXT STYLE CONTROLS — ONLY WHEN PAUSED AND TEXT EDITING */}
+      {!state.isPlaying && isEditingText && (
         <div
           className="overlay-controls"
           onMouseDown={e => e.stopPropagation()}
@@ -97,42 +109,63 @@ export function OverlayBox({
       {/* TEXT */}
       {overlay.type === "text" && (
         <div
-          contentEditable
+          contentEditable={!state.isPlaying} // ✅ Only editable when paused
           suppressContentEditableWarning
           className="overlay-text"
           onMouseDown={e => {
+            // ✅ BLOCK text editing during playback
+            if (state.isPlaying) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+
             e.stopPropagation();
+            e.preventDefault();
+            
+            // Select the overlay first
+            dispatch({
+              type: "SELECT_OVERLAY",
+              payload: { overlayId: overlay.id },
+            });
+            
+            // Then enable text editing
             dispatch({
               type: "START_EDIT_TEXT",
               payload: { overlayId: overlay.id },
             });
           }}
-          onBlur={e =>
-            dispatch({
-              type: "UPDATE_OVERLAY_CONTENT",
-              payload: {
-                overlayId: overlay.id,
-                text: e.currentTarget.innerText,
-              },
-            })
-          }
+          onBlur={e => {
+            if (!state.isPlaying) {
+              dispatch({
+                type: "UPDATE_OVERLAY_CONTENT",
+                payload: {
+                  overlayId: overlay.id,
+                  text: e.currentTarget.innerText,
+                },
+              });
+            }
+          }}
           style={{
             fontSize: `${overlay.textStyle?.fontSize ?? 16}px`,
             color: overlay.textStyle?.color ?? "#ffffff",
+            outline: 'none',
+            cursor: state.isPlaying ? 'default' : 'text',
+            userSelect: state.isPlaying ? 'none' : 'text',
           }}
         >
           {overlay.text || "Type here"}
         </div>
       )}
 
-      {state.selectedOverlayId === overlay.id && (
+      {/* RESIZE HANDLES - ONLY WHEN PAUSED AND SELECTED */}
+      {!state.isPlaying && isSelected && (
         <OverlayResizeHandle
           overlayId={overlay.id}
           containerRef={containerRef}
           geometry={overlay.geometry}
         />
       )}
-
     </div>
   );
 }
