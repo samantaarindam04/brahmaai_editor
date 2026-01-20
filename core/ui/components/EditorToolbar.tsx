@@ -38,10 +38,12 @@ export function EditorToolbar() {
 
     if (!activeSegment) return;
 
+    const overlayId = crypto.randomUUID();
+
     dispatch({
       type: "ADD_OVERLAY",
       payload: {
-        id: crypto.randomUUID(),
+        id: overlayId,
         type: "text",
         text: "New Overlay",
         geometry: {
@@ -55,41 +57,52 @@ export function EditorToolbar() {
         segmentIds: [activeSegment.id],
       },
     });
+
+    dispatch({
+      type: "ADD_OVERLAY_TIMING",
+      payload: {
+        overlayId,
+        segmentId: activeSegment.id,
+        startTime: state.currentTime - activeSegment.startTime,
+        duration: 3,
+      },
+    });
   }
 
+
   return (
-  <div className="editor-toolbar border-b border-gray-700 p-3 flex items-center justify-between bg-gray-900">
+    <div className="editor-toolbar border-b border-gray-700 p-3 flex items-center justify-between bg-gray-900">
       <div className="text-white font-semibold mr-4">
         Video Editor
       </div>
 
- <div className="flex gap-2">
-      {/* ADD VIDEO */}
-      <label className="bg-white px-3 py-1 rounded-md cursor-pointer text-sm">
-        + Add Video
-        <input
-          type="file"
-          accept="video/*"
-          className="hidden"
-          onChange={handleFileSelect}
-        />
-      </label>
+      <div className="flex gap-2">
+        {/* ADD VIDEO */}
+        <label className="bg-white px-3 py-1 rounded-md cursor-pointer text-sm">
+          + Add Video
+          <input
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+        </label>
 
-      {/* ADD OVERLAY */}
-      <button
-        onClick={handleAddOverlay}
-        className="bg-white px-3 py-1 rounded-md text-sm"
-      >
-        + Add Overlay
-      </button>
+        {/* ADD OVERLAY */}
+        <button
+          onClick={handleAddOverlay}
+          className="bg-white px-3 py-1 rounded-md text-sm"
+        >
+          + Add Overlay
+        </button>
 
-      {/* PLAY / PAUSE */}
-      <button
-        onClick={handlePlayPause}
-        className="bg-white px-3 py-1 rounded-md text-sm"
-      >
-        {state.isPlaying ? "⏸ Pause" : "▶ Play"}
-      </button>
+        {/* PLAY / PAUSE */}
+        <button
+          onClick={handlePlayPause}
+          className="bg-white px-3 py-1 rounded-md text-sm"
+        >
+          {state.isPlaying ? "⏸ Pause" : "▶ Play"}
+        </button>
       </div>
     </div>
   );

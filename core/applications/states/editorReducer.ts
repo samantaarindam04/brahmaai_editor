@@ -250,7 +250,16 @@ export function editorReducer(
       }
     }
 
-
+    case "UPDATE_OVERLAY_TIMING":
+      return {
+        ...state,
+        overlayTimings: state.overlayTimings.map(t =>
+          t.overlayId === action.payload.overlayId &&
+            t.segmentId === action.payload.segmentId
+            ? action.payload
+            : t
+        ),
+      };
     case "SELECT_OVERLAY":
       return {
         ...state,

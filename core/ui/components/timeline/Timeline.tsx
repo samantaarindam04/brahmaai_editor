@@ -17,7 +17,7 @@ import Playhead from "./Playhead";
 const TRACK_LABEL_WIDTH = 128; // px (w-32)
 
 export function Timeline() {
-  const { state } = useEditor();
+  const { state, dispatch } = useEditor();
   const { pxPerSec, setPxPerSec, fitToDuration } = useTimelineScale();
 
   const rulerRef = useRef<HTMLDivElement | null>(null);
@@ -144,15 +144,19 @@ export function Timeline() {
         <div
           style={{
             width: timelineWidth + TRACK_LABEL_WIDTH,
+            // paddingLeft: TRACK_LABEL_WIDTH,
           }}
         >
           {/* Overlay Track */}
-          <div className="flex h-12 border-b border-neutral-700">
-            <div className="w-32 px-2 flex items-center text-sm text-gray-400 bg-neutral-900 sticky left-0 z-10 border-r border-neutral-700">
+          <div className="h-12 border-b border-neutral-700 relative">
+            <div className="absolute left-0 top-0 bottom-0 w-32 px-2 flex items-center text-sm text-gray-400 bg-neutral-900 z-10 border-r border-neutral-700">
               Overlays
             </div>
 
-            <div className="relative flex-1">
+            <div className="absolute top-0 bottom-0" style={{
+              left: TRACK_LABEL_WIDTH,
+              right: 0
+            }}>
               {state.overlayTimings.map((timing) => {
                 const overlay = state.timeline.overlays.find(
                   (o) => o.id === timing.overlayId
@@ -162,19 +166,54 @@ export function Timeline() {
                 );
                 if (!overlay || !segment) return null;
 
-                const start =
-                  segment.startTime + timing.startTime;
+                // Calculate absolute timeline position
+                const absoluteStartTime = segment.startTime + timing.startTime;
 
                 return (
                   <div
                     key={`${timing.overlayId}-${timing.segmentId}`}
-                    className="absolute h-8 top-2 bg-red-500 rounded px-2 text-xs flex items-center text-white"
+                    className="absolute h-8 top-2 bg-red-500 rounded px-2 text-xs flex items-center text-white cursor-move"
                     style={{
-                      left: TRACK_LABEL_WIDTH + start * pxPerSec,
+                      left: absoluteStartTime * pxPerSec,
                       width: timing.duration * pxPerSec,
                     }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+
+                      const startX = e.clientX;
+                      const initialStartTime = timing.startTime;
+                      const segmentDuration = segment?.duration ?? 0;
+
+                      function onMove(ev: MouseEvent) {
+                        const dxPx = ev.clientX - startX;
+                        const deltaSec = dxPx / pxPerSec;
+
+                        // Calculate new startTime relative to segment
+                        const newStartTime = Math.max(0, initialStartTime + deltaSec);
+
+                        // Ensure overlay doesn't go beyond segment duration
+                        const maxStartTime = segmentDuration - timing.duration;
+                        const constrainedStartTime = Math.min(newStartTime, Math.max(0, maxStartTime));
+
+                        dispatch({
+                          type: "UPDATE_OVERLAY_TIMING",
+                          payload: {
+                            ...timing,
+                            startTime: constrainedStartTime,
+                          },
+                        });
+                      }
+
+                      function onUp() {
+                        document.removeEventListener("mousemove", onMove);
+                        document.removeEventListener("mouseup", onUp);
+                      }
+
+                      document.addEventListener("mousemove", onMove);
+                      document.addEventListener("mouseup", onUp);
+                    }}
                   >
-                    {overlay.content ?? "Overlay"}
+                    {overlay.text ?? "Overlay"}
                   </div>
                 );
               })}
@@ -182,12 +221,18 @@ export function Timeline() {
           </div>
 
           {/* Video Track */}
-          <div className="flex h-14">
-            <div className="w-32 px-2 flex items-center text-sm text-gray-400 bg-neutral-900 sticky left-0 z-10 border-r border-neutral-700">
+          <div className="h-14 relative">
+            <div className="absolute left-0 top-0 bottom-0 w-32 px-2 flex items-center text-sm text-gray-400 bg-neutral-900 z-10 border-r border-neutral-700">
               Main Video Layer
             </div>
 
-            <div className="relative flex-1">
+            <div
+              className="absolute top-0 bottom-0"
+              style={{
+                left: TRACK_LABEL_WIDTH,
+                right: 0
+              }}
+            >
               {state.timeline.segments.length === 0 ? (
                 <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
                   No video segments added

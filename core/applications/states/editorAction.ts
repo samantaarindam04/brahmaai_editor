@@ -83,3 +83,7 @@ export type EditorActions =
     }
   }
   | { type: "DESELECT_OVERLAY" }
+  | {
+    type: "UPDATE_OVERLAY_TIMING"
+    payload: OverlayTiming
+  }
