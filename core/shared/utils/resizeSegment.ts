@@ -1,16 +1,6 @@
 import { VideoSegment } from "@/core/domain/entities/videoSegment";
 import { normalizeSegments } from "@/core/shared/utils/normalizeSegment";
 
-/**
- * Resize a segment from start or end.
- *
- * Rules:
- * - startTime can never be < 0
- * - duration can never be <= 0
- * - resizing start shifts startTime AND duration
- * - resizing end changes duration only
- * - collisions are resolved via normalizeSegments
- */
 export function resizeSegment(
   segments: VideoSegment[],
   segmentId: string,
@@ -27,7 +17,6 @@ export function resizeSegment(
       const diff = newStart - seg.startTime;
       const newDuration = seg.duration - diff;
 
-      // Prevent invalid segment
       if (newDuration <= 0) {
         return { ...seg };
       }
@@ -39,7 +28,6 @@ export function resizeSegment(
       };
     }
 
-    // edge === "end"
     const newDuration = seg.duration + delta;
 
     if (newDuration <= 0) {

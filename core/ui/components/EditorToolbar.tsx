@@ -84,7 +84,7 @@ export function EditorToolbar() {
       </div>
 
       <div className="flex gap-2">
-        {/* ADD VIDEO */}
+        {/* Add Video */}
         <label className="bg-gray-600 px-4 py-2 text-white cursor-pointer text-sm rounded-sm">
           + Add Video
           <input
@@ -95,7 +95,7 @@ export function EditorToolbar() {
           />
         </label>
 
-        {/* ADD OVERLAY */}
+        {/* Add Overlay */}
         <button
           onClick={handleAddOverlay}
           className="bg-gray-600 px-4 py-2 text-white cursor-pointer text-sm rounded-sm"
@@ -103,7 +103,7 @@ export function EditorToolbar() {
           + Add Overlay
         </button>
 
-        {/* PLAY / PAUSE */}
+        {/* Play / Pause */}
         <button
           onClick={handlePlayPause}
           className="bg-blue-500 px-4 py-2 text-white text-sm rounded-sm"

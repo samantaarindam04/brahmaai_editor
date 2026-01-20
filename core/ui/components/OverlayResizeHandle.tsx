@@ -14,7 +14,6 @@ export function OverlayResizeHandle({
   geometry: OverlayGeometry;
 }) {
   const dispatch = useEditorDispatch();
-  const last = useRef<{ x: number; y: number } | null>(null);
   const start = useRef<{
     x: number
     y: number
@@ -29,7 +28,7 @@ export function OverlayResizeHandle({
     start.current = {
       x: e.clientX,
       y: e.clientY,
-      geometry: { ...geometry }, // snapshot
+      geometry: { ...geometry },
     }
 
     window.addEventListener("mousemove", onMove)

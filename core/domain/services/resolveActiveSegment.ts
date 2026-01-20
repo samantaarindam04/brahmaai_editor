@@ -4,13 +4,6 @@ import {
   SegmentTimeMapping,
 } from "./mapTimelineToSegment";
 
-/**
- * Resolves which segment should be actively playing
- * for a given timeline time.
- *
- * This is a semantic wrapper around mapTimelineToSegment
- * used specifically for playback decisions.
- */
 export function resolveActiveSegment(
   timelineTime: number,
   segments: VideoSegment[]

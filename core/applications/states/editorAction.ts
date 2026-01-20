@@ -6,18 +6,8 @@ import { OverlayTiming } from "@/core/domain/value-objects/OverlayTiming";
 export type EditorActions =
   | { type: "PLAY" }
   | { type: "PAUSE" }
-
-  /**
-   * Explicit user-driven seek (timeline click / drag)
-   */
   | { type: "SET_TIME"; payload: number }
-
-  /**
-   * Playback-driven time progression (video timeupdate)
-   * delta = seconds advanced since last tick
-   */
   | { type: "TICK"; payload: number }
-
   | { type: "ADD_SEGMENT"; payload: VideoSegment }
   | {
     type: "MOVE_SEGMENT";

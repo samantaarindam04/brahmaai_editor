@@ -13,10 +13,6 @@ interface EditorContextValue {
 
 export const EditorContext = createContext<EditorContextValue | null>(null);
 
-/**
- * Provider is intentionally dumb.
- * Reducer ownership stays in MainEditor for now.
- */
 export function EditorProvider({
   value,
   children,
@@ -31,10 +27,6 @@ export function EditorProvider({
   );
 }
 
-/**
- * NEW STANDARD HOOK
- * Preferred going forward
- */
 export function useEditor() {
   const ctx = useContext(EditorContext);
   if (!ctx) {
@@ -43,10 +35,6 @@ export function useEditor() {
   return ctx;
 }
 
-/**
- * BACKWARD-COMPATIBILITY HOOK
- * Replaces EditorDispatchContext
- */
 export function useEditorDispatch() {
   const ctx = useContext(EditorContext);
   if (!ctx) {

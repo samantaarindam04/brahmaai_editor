@@ -9,7 +9,7 @@ type PlayheadProps = {
   offset?: number;
 };
 
-const SEEK_THRESHOLD = 0.15; // seconds
+const SEEK_THRESHOLD = 0.15;
 
 export default function Playhead({
   px,
@@ -24,12 +24,10 @@ export default function Playhead({
   const visualTimeRef = useRef(currentTime);
   const rafRef = useRef<number | null>(null);
 
-  // Handle authoritative updates safely
   useEffect(() => {
     const visual = visualTimeRef.current;
     const delta = currentTime - visual;
 
-    // Accept seek or pause jumps
     if (!isPlaying || Math.abs(delta) > SEEK_THRESHOLD) {
       baseTimeRef.current = currentTime;
       visualTimeRef.current = currentTime;
@@ -40,7 +38,6 @@ export default function Playhead({
         ref.current.style.transform = `translateX(${x}px)`;
       }
     }
-    // else: ignore tiny backward corrections
   }, [currentTime, isPlaying, px, offset]);
 
   useEffect(() => {

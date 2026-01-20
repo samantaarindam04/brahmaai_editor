@@ -25,14 +25,9 @@ export function VideoPreview() {
 
     const absoluteStartTime = segment.startTime + timing.startTime;
     const absoluteEndTime = absoluteStartTime + timing.duration;
-
-    // ✅ FIXED: Only show overlays within their time window
-    // Remove the "isSelected" condition during playback
     const isVisibleByTime =
       state.currentTime >= absoluteStartTime &&
       state.currentTime < absoluteEndTime;
-
-    // ✅ Only allow selection override when PAUSED
     const isSelectedWhilePaused = 
       !state.isPlaying && state.selectedOverlayId === overlay.id;
 
@@ -45,7 +40,6 @@ export function VideoPreview() {
       className="video-preview relative w-full overflow-hidden flex-1 border border-dashed border-gray-700 bg-black flex items-center justify-center"
       onMouseDown={(e) => {
         const target = e.target as HTMLElement;
-        // Only deselect if clicking directly on the container (not on overlays)
         if (target === e.currentTarget) {
           dispatch({
             type: "DESELECT_OVERLAY",
@@ -55,7 +49,6 @@ export function VideoPreview() {
     >
       <video ref={videoRef} className="video-js" />
 
-      {/* ✅ Render only visible overlays based on current time */}
       {visibleOverlays.map(o => (
         <OverlayBox
           key={o.id}

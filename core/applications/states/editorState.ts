@@ -1,5 +1,3 @@
-// state contracts
-
 import { Timeline } from "@/core/domain/entities/timeline";
 import { OverlayTiming } from "@/core/domain/value-objects/OverlayTiming";
 export interface EditorState {

@@ -23,9 +23,6 @@ export function usePlaybackCoordinator({
   const endedRef = useRef(false);
   const wasAutoRewindRef = useRef(false);
 
-  /* --------------------------------------------
-   * Track playing state for async callbacks
-   * -------------------------------------------- */
   useEffect(() => {
     isPlayingRef.current = state.isPlaying;
     if (state.isPlaying) {
@@ -33,9 +30,6 @@ export function usePlaybackCoordinator({
     }
   }, [state.isPlaying]);
 
-  /* --------------------------------------------
-   * Initialize Video.js ONCE
-   * -------------------------------------------- */
   useEffect(() => {
     if (!videoElementRef.current) return;
 
@@ -44,7 +38,6 @@ export function usePlaybackCoordinator({
 
     controller.init(videoElementRef.current, {
       onTimeUpdate: (videoTime) => {
-        // ✅ FIXED: Check ended flag BEFORE processing tick
         if (!isPlayingRef.current || endedRef.current) {
           return;
         }
@@ -66,33 +59,17 @@ export function usePlaybackCoordinator({
     };
   }, [videoElementRef, dispatch]);
 
-  /* --------------------------------------------
-   * Timeline → Segment resolution & end handling
-   * -------------------------------------------- */
   useEffect(() => {
     const controller = controllerRef.current;
     if (!controller || !state.timeline) return;
 
     const totalDuration = CalcDuration(state.timeline.segments);
-
-    // ✅ CRITICAL FIX: Check for end FIRST, before resolving segment
-    // This prevents the race condition where currentTime >= totalDuration
-    // but we still try to process a segment
     if (totalDuration > 0 && state.currentTime >= totalDuration - 0.01) {
       if (state.isPlaying) {
-        console.log("[PLAYBACK] Reached end:", state.currentTime.toFixed(3), ">=", totalDuration.toFixed(3));
-        
-        // ✅ Set ended flag FIRST to stop ticks immediately
         endedRef.current = true;
         wasAutoRewindRef.current = true;
-
-        // ✅ Pause the controller immediately
         controller.pause();
-        
-        // ✅ Dispatch pause action
         dispatch({ type: "PAUSE" });
-
-        // ✅ Reset to beginning
         requestAnimationFrame(() => {
           dispatch({ type: "SET_TIME", payload: 0 });
           lastVideoTimeRef.current = null;
@@ -102,7 +79,6 @@ export function usePlaybackCoordinator({
       return;
     }
 
-    // ✅ Don't process segments if we've ended
     if (endedRef.current) return;
 
     const active = resolveActiveSegment(
@@ -110,7 +86,6 @@ export function usePlaybackCoordinator({
       state.timeline.segments
     );
 
-    // ✅ CRITICAL FIX: If no active segment during playback, STOP
     if (!active) {
       if (state.isPlaying) {
         console.log("[PLAYBACK] No active segment at time:", state.currentTime.toFixed(3), "- stopping");
@@ -118,7 +93,6 @@ export function usePlaybackCoordinator({
         controller.pause();
         dispatch({ type: "PAUSE" });
         
-        // Reset to beginning
         requestAnimationFrame(() => {
           dispatch({ type: "SET_TIME", payload: 0 });
           lastVideoTimeRef.current = null;
@@ -128,7 +102,6 @@ export function usePlaybackCoordinator({
       return;
     }
 
-    // ✅ Switch segments or continue current segment
     if (lastSegmentIdRef.current !== active.segment.id) {
       console.log("[PLAYBACK] Switching to segment:", active.segment.id, "at local time:", active.localTime.toFixed(3));
       lastSegmentIdRef.current = active.segment.id;
@@ -143,15 +116,11 @@ export function usePlaybackCoordinator({
     }
   }, [state.currentTime, state.timeline, state.isPlaying, dispatch]);
 
-  /* --------------------------------------------
-   * Play / Pause control
-   * -------------------------------------------- */
   useEffect(() => {
     const controller = controllerRef.current;
     if (!controller) return;
 
     if (state.isPlaying) {
-      // ✅ FIXED: Reset ended flag when playing starts
       endedRef.current = false;
       controller.play();
     } else {
@@ -159,9 +128,6 @@ export function usePlaybackCoordinator({
     }
   }, [state.isPlaying]);
 
-  /* --------------------------------------------
-   * Reset segment ONLY on user seek, not auto-rewind
-   * -------------------------------------------- */
   useEffect(() => {
     if (state.currentTime === 0 && wasAutoRewindRef.current) {
       wasAutoRewindRef.current = false;
@@ -171,7 +137,6 @@ export function usePlaybackCoordinator({
     if (state.currentTime === 0) {
       lastSegmentIdRef.current = null;
       lastVideoTimeRef.current = null;
-      // ✅ FIXED: Also reset ended flag on manual rewind
       endedRef.current = false;
     }
   }, [state.currentTime]);

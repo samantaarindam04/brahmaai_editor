@@ -20,18 +20,12 @@ export function editorReducer(
     case "PAUSE":
       return { ...state, isPlaying: false };
 
-    /**
-     * User-driven seek (timeline click / drag)
-     */
     case "SET_TIME":
       return {
         ...state,
         currentTime: Math.max(0, action.payload),
       };
 
-    /**
-     * Playback-driven time progression (Phase-3)
-     */
     case "TICK":
       const nextTime = state.currentTime + action.payload;
       console.log(
@@ -97,9 +91,6 @@ export function editorReducer(
       };
     }
 
-    /**
-     * Resize segment (already Phase-3 safe)
-     */
     case "RESIZE_SEGMENT": {
       const segments = resizeSegment(
         state.timeline.segments,
@@ -118,17 +109,6 @@ export function editorReducer(
       };
     }
 
-    /**
-     * Overlay creation
-     */
-    // case "ADD_OVERLAY":
-    //   return {
-    //     ...state,
-    //     timeline: {
-    //       ...state.timeline,
-    //       overlays: [...state.timeline.overlays, action.payload],
-    //     },
-    //   };
     case "ADD_OVERLAY":
       return {
         ...state,
@@ -138,9 +118,6 @@ export function editorReducer(
         },
       };
 
-    /**
-     * Overlay geometry update
-     */
     case "UPDATE_OVERLAY_GEOMETRY":
       return {
         ...state,
@@ -154,9 +131,6 @@ export function editorReducer(
         },
       };
 
-    /**
-     * Overlay timing mapping
-     */
     case "ADD_OVERLAY_TIMING":
       return {
         ...state,
@@ -169,7 +143,7 @@ export function editorReducer(
           o => o.id === action.payload.overlayId
         )
 
-      if (!overlay) return state // defensive, no crash
+      if (!overlay) return state 
 
       const next = constrainOverlay({
         ...overlay.geometry,

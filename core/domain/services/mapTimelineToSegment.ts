@@ -5,12 +5,6 @@ export interface SegmentTimeMapping {
   localTime: number;
 }
 
-/**
- * Maps a global timeline time to a specific video segment
- * and calculates the local playback time inside that segment.
- *
- * PURE DOMAIN LOGIC
- */
 export function mapTimelineToSegment(
   timelineTime: number,
   segments: VideoSegment[]

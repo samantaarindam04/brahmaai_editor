@@ -6,7 +6,7 @@ import { useTimelineScale } from "@/core/applications/hooks/useTimelineScale";
 import TimelineSegment from "./timelineSegment";
 import Playhead from "./Playhead";
 
-const TRACK_LABEL_WIDTH = 128; // px (w-32)
+const TRACK_LABEL_WIDTH = 128;
 
 export function Timeline() {
   const { state, dispatch } = useEditor();
@@ -43,7 +43,7 @@ export function Timeline() {
 
   return (
     <div className="w-full bg-neutral-900 text-gray-200 border-t border-neutral-700">
-      {/* HEADER */}
+      {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-700">
         <div className="font-medium">Timeline</div>
 
@@ -89,7 +89,7 @@ export function Timeline() {
         </div>
       </div>
 
-      {/* RULER */}
+      {/* Ruler */}
       <div
         ref={rulerRef}
         className="relative h-12 overflow-x-scroll overflow-y-hidden border-b border-neutral-700 bg-timeline-ruler scrollbar-none"
@@ -128,7 +128,7 @@ export function Timeline() {
         </div>
       </div>
 
-      {/* TRACKS */}
+      {/* Tracks */}
       <div
         ref={tracksRef}
         className="relative overflow-x-scroll overflow-y-hidden"
@@ -156,8 +156,6 @@ export function Timeline() {
                   (s) => s.id === timing.segmentId
                 );
                 if (!overlay || !segment) return null;
-
-                // Calculate absolute timeline position
                 const absoluteStartTime = segment.startTime + timing.startTime;
 
                 return (
@@ -171,8 +169,7 @@ export function Timeline() {
                     onMouseDown={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      
-                      // ✅ FIXED: Only select overlay, don't change playhead time
+
                       dispatch({
                         type: "SELECT_OVERLAY",
                         payload: { overlayId: overlay.id },
@@ -185,11 +182,7 @@ export function Timeline() {
                       function onMove(ev: MouseEvent) {
                         const dxPx = ev.clientX - startX;
                         const deltaSec = dxPx / pxPerSec;
-
-                        // Calculate new startTime relative to segment
                         const newStartTime = Math.max(0, initialStartTime + deltaSec);
-
-                        // Ensure overlay doesn't go beyond segment duration
                         const maxStartTime = segmentDuration - timing.duration;
                         const constrainedStartTime = Math.min(newStartTime, Math.max(0, maxStartTime));
 

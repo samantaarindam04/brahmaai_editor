@@ -28,16 +28,13 @@ export function OverlayBox({
   const start = useRef<{ x: number; y: number } | null>(null);
   const isDraggingRef = useRef(false);
 
-  /* ---------- overlay box click (select + drag) ---------- */
   function onOverlayMouseDown(e: React.MouseEvent) {
-    // ✅ BLOCK all interactions during playback
     if (state.isPlaying) {
       e.preventDefault();
       e.stopPropagation();
       return;
     }
 
-    // ✅ CRITICAL FIX: Don't start drag if clicking on text or controls
     const target = e.target as HTMLElement;
     if (
       target.closest('[contenteditable]') ||
@@ -49,7 +46,6 @@ export function OverlayBox({
 
     e.stopPropagation();
 
-    // Select the overlay
     dispatch({
       type: "SELECT_OVERLAY",
       payload: { overlayId: overlay.id },
@@ -65,7 +61,6 @@ export function OverlayBox({
   function onMove(e: MouseEvent) {
     if (!start.current || !containerRef.current) return;
 
-    // Mark as dragging after any movement
     isDraggingRef.current = true;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -110,7 +105,7 @@ export function OverlayBox({
         backgroundColor: hexToRgba(bgColor, bgOpacity),
       }}
     >
-      {/* TEXT STYLE CONTROLS — ONLY WHEN PAUSED AND TEXT EDITING */}
+      {/* TEXT STYLE CONTROLS */}
       {!state.isPlaying && isEditingText && (
         <div
           className="overlay-controls"
@@ -123,39 +118,31 @@ export function OverlayBox({
       {/* TEXT */}
       {overlay.type === "text" && (
         <div
-          contentEditable={!state.isPlaying && isEditingText} // ✅ Only editable when in edit mode
+          contentEditable={!state.isPlaying && isEditingText}
           suppressContentEditableWarning
           className="overlay-text"
           onClick={(e) => {
-            // ✅ FIXED: Use onClick instead of onMouseDown for text editing
             if (state.isPlaying) {
               e.preventDefault();
               e.stopPropagation();
               return;
             }
 
-            // Only enable editing if not already editing
             if (!isEditingText) {
               e.stopPropagation();
-              
-              // Select the overlay first
               dispatch({
                 type: "SELECT_OVERLAY",
                 payload: { overlayId: overlay.id },
               });
               
-              // Then enable text editing
               dispatch({
                 type: "START_EDIT_TEXT",
                 payload: { overlayId: overlay.id },
               });
 
-              // ✅ Focus the text element after a brief delay
               setTimeout(() => {
                 const textElement = e.currentTarget;
                 textElement.focus();
-                
-                // Select all text for easy editing
                 const range = document.createRange();
                 range.selectNodeContents(textElement);
                 const sel = window.getSelection();
@@ -174,7 +161,6 @@ export function OverlayBox({
                 },
               });
               
-              // Exit edit mode on blur
               dispatch({
                 type: "SELECT_OVERLAY",
                 payload: { overlayId: overlay.id },
@@ -182,7 +168,6 @@ export function OverlayBox({
             }
           }}
           onMouseDown={(e) => {
-            // ✅ Prevent drag when editing text
             if (isEditingText) {
               e.stopPropagation();
             }
@@ -201,7 +186,6 @@ export function OverlayBox({
         </div>
       )}
 
-      {/* RESIZE HANDLES - ONLY WHEN PAUSED AND SELECTED */}
       {!state.isPlaying && isSelected && (
         <OverlayResizeHandle
           overlayId={overlay.id}
