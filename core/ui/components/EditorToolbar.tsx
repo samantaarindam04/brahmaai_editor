@@ -4,6 +4,7 @@ import { ChangeEvent } from "react";
 import { useEditor } from "@/core/applications/contexts/EditorContext";
 import { VideoSegment } from "@/core/domain/entities/videoSegment";
 import { findActiveSegment } from "@/core/domain/services/findActiveSegment";
+import { exportEditorState } from "@/core/domain/services/exportEditorState";
 
 export function EditorToolbar() {
   const { state, dispatch } = useEditor();
@@ -69,7 +70,11 @@ export function EditorToolbar() {
   }
 
   function handleExportJson() {
-    console.log("exported")
+    const exportedState = exportEditorState(state);
+    console.log(
+      "Exported Editor State:",
+      JSON.stringify(exportedState, null, 2)
+    );
   }
 
   return (
