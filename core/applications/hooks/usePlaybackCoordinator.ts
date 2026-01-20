@@ -65,23 +65,18 @@ export function usePlaybackCoordinator({
     controllerRef.current = controller;
 
     controller.init(videoElementRef.current, {
-      onTimeUpdate: () => {
+      onTimeUpdate: (videoTime) => {
         if (!isPlayingRef.current) return;
 
-        const now = performance.now();
-
         if (lastVideoTimeRef.current !== null) {
-          const delta = (now - lastVideoTimeRef.current) / 1000;
-
-          if (delta <= 0) return;
-
-          dispatch({ type: "TICK", payload: delta });
+          const delta = videoTime - lastVideoTimeRef.current;
+          if (delta > 0) {
+            dispatch({ type: "TICK", payload: delta });
+          }
         }
 
-        lastVideoTimeRef.current = now;
+        lastVideoTimeRef.current = videoTime;
       },
-
-
     });
 
     return () => {
@@ -137,7 +132,7 @@ export function usePlaybackCoordinator({
         controller.play();
       }
     }
-  }, [state.currentTime, state.timeline]);
+  }, [state.currentTime, state.timeline, state.isPlaying]);
 
 
   useEffect(() => {

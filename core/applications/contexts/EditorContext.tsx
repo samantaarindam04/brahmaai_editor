@@ -8,6 +8,7 @@ import { EditorActions } from "../states/editorAction";
 interface EditorContextValue {
   state: EditorState;
   dispatch: React.Dispatch<EditorActions>;
+  videoElementRef: React.RefObject<HTMLVideoElement | null>;
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null);

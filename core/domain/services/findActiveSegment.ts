@@ -5,6 +5,6 @@ export function findActiveSegment(
   time: number
 ): VideoSegment | undefined {
   return segments.find(
-    s => time >= s.startTime && time <= s.startTime + s.duration
+    s => time >= s.startTime && time < s.startTime + s.duration
   );
 }

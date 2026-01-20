@@ -2,22 +2,42 @@
 
 import { useState } from "react";
 
+const MIN_PX_PER_SEC = 20;
+const MAX_PX_PER_SEC = 400;
 const DEFAULT_PX_PER_SEC = 100;
 
 export function useTimelineScale() {
-  const [pxPerSec, setPxPerSec] = useState(DEFAULT_PX_PER_SEC);
+  const [pxPerSec, _setPxPerSec] = useState(DEFAULT_PX_PER_SEC);
+
+  function setPxPerSec(value: number) {
+    _setPxPerSec(
+      Math.min(Math.max(value, MIN_PX_PER_SEC), MAX_PX_PER_SEC)
+    );
+  }
 
   function zoomIn() {
-    setPxPerSec((v) => Math.min(v * 1.25, 400));
+    setPxPerSec(pxPerSec * 1.25);
   }
 
   function zoomOut() {
-    setPxPerSec((v) => Math.max(v * 0.8, 20));
+    setPxPerSec(pxPerSec * 0.8);
+  }
+
+  function fitToDuration(
+    duration: number,
+    viewportWidth: number
+  ) {
+    if (duration <= 0) return;
+
+    const next = viewportWidth / duration;
+    setPxPerSec(next);
   }
 
   return {
     pxPerSec,
     zoomIn,
     zoomOut,
+    fitToDuration,
+    setPxPerSec,
   };
 }

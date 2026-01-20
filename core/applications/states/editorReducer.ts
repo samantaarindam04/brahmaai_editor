@@ -4,6 +4,11 @@ import { resizeSegment } from "@/core/shared/utils/resizeSegment";
 import { normalizeSegments } from "@/core/shared/utils/normalizeSegment";
 import { constrainOverlay } from "@/core/domain/services/constrainOverlay";
 
+function calculateDuration(segments: Array<{ startTime: number; duration: number }>): number {
+  if (segments.length === 0) return 0;
+  return Math.max(...segments.map(seg => seg.startTime + seg.duration));
+}
+
 export function editorReducer(
   state: EditorState,
   action: EditorActions
@@ -54,11 +59,14 @@ export function editorReducer(
         startTime,
       };
 
+      const newSegments = [...state.timeline.segments, newSegment];
+
       return {
         ...state,
         timeline: {
           ...state.timeline,
-          segments: [...state.timeline.segments, newSegment],
+          segments: newSegments,
+          duration: calculateDuration(newSegments),
         },
       };
     }
@@ -84,6 +92,7 @@ export function editorReducer(
         timeline: {
           ...state.timeline,
           segments: normalized,
+          duration: calculateDuration(normalized),
         },
       };
     }
@@ -104,6 +113,7 @@ export function editorReducer(
         timeline: {
           ...state.timeline,
           segments,
+          duration: calculateDuration(segments),
         },
       };
     }

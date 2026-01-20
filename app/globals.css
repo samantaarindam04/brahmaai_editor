@@ -192,3 +192,15 @@ video {
   cursor: se-resize;
   z-index: 20;
 }
+
+/* Timeline ruler background illusion */
+.bg-timeline-ruler {
+  background-color: #1a1a1a;
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.04) 1px,
+    transparent 1px,
+    transparent 40px
+  );
+}
