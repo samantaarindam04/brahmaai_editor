@@ -26,6 +26,7 @@ export function OverlayBox({
   const { state } = useEditor();
   const dispatch = useEditorDispatch();
   const start = useRef<{ x: number; y: number } | null>(null);
+  const isDraggingRef = useRef(false);
 
   /* ---------- overlay box click (select + drag) ---------- */
   function onOverlayMouseDown(e: React.MouseEvent) {
@@ -36,24 +37,36 @@ export function OverlayBox({
       return;
     }
 
+    // ✅ CRITICAL FIX: Don't start drag if clicking on text or controls
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('[contenteditable]') ||
+      target.closest('.overlay-controls') ||
+      target.closest('[data-resize-handle]')
+    ) {
+      return;
+    }
+
     e.stopPropagation();
 
-    // Only select if not clicking on the text element
-    const target = e.target as HTMLElement;
-    if (!target.closest('[contenteditable]')) {
-      dispatch({
-        type: "SELECT_OVERLAY",
-        payload: { overlayId: overlay.id },
-      });
+    // Select the overlay
+    dispatch({
+      type: "SELECT_OVERLAY",
+      payload: { overlayId: overlay.id },
+    });
 
-      start.current = { x: e.clientX, y: e.clientY };
-      document.addEventListener("mousemove", onMove);
-      document.addEventListener("mouseup", onUp);
-    }
+    start.current = { x: e.clientX, y: e.clientY };
+    isDraggingRef.current = false;
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
   }
 
   function onMove(e: MouseEvent) {
     if (!start.current || !containerRef.current) return;
+
+    // Mark as dragging after any movement
+    isDraggingRef.current = true;
 
     const rect = containerRef.current.getBoundingClientRect();
     const dx = (e.clientX - start.current.x) / rect.width;
@@ -74,6 +87,7 @@ export function OverlayBox({
   function onUp() {
     document.removeEventListener("mousemove", onMove);
     document.removeEventListener("mouseup", onUp);
+    isDraggingRef.current = false;
   }
 
   const bgColor = overlay.textStyle?.backgroundColor ?? "#000000";
@@ -109,31 +123,46 @@ export function OverlayBox({
       {/* TEXT */}
       {overlay.type === "text" && (
         <div
-          contentEditable={!state.isPlaying} // ✅ Only editable when paused
+          contentEditable={!state.isPlaying && isEditingText} // ✅ Only editable when in edit mode
           suppressContentEditableWarning
           className="overlay-text"
-          onMouseDown={e => {
-            // ✅ BLOCK text editing during playback
+          onClick={(e) => {
+            // ✅ FIXED: Use onClick instead of onMouseDown for text editing
             if (state.isPlaying) {
               e.preventDefault();
               e.stopPropagation();
               return;
             }
 
-            e.stopPropagation();
-            e.preventDefault();
-            
-            // Select the overlay first
-            dispatch({
-              type: "SELECT_OVERLAY",
-              payload: { overlayId: overlay.id },
-            });
-            
-            // Then enable text editing
-            dispatch({
-              type: "START_EDIT_TEXT",
-              payload: { overlayId: overlay.id },
-            });
+            // Only enable editing if not already editing
+            if (!isEditingText) {
+              e.stopPropagation();
+              
+              // Select the overlay first
+              dispatch({
+                type: "SELECT_OVERLAY",
+                payload: { overlayId: overlay.id },
+              });
+              
+              // Then enable text editing
+              dispatch({
+                type: "START_EDIT_TEXT",
+                payload: { overlayId: overlay.id },
+              });
+
+              // ✅ Focus the text element after a brief delay
+              setTimeout(() => {
+                const textElement = e.currentTarget;
+                textElement.focus();
+                
+                // Select all text for easy editing
+                const range = document.createRange();
+                range.selectNodeContents(textElement);
+                const sel = window.getSelection();
+                sel?.removeAllRanges();
+                sel?.addRange(range);
+              }, 0);
+            }
           }}
           onBlur={e => {
             if (!state.isPlaying) {
@@ -144,14 +173,28 @@ export function OverlayBox({
                   text: e.currentTarget.innerText,
                 },
               });
+              
+              // Exit edit mode on blur
+              dispatch({
+                type: "SELECT_OVERLAY",
+                payload: { overlayId: overlay.id },
+              });
+            }
+          }}
+          onMouseDown={(e) => {
+            // ✅ Prevent drag when editing text
+            if (isEditingText) {
+              e.stopPropagation();
             }
           }}
           style={{
             fontSize: `${overlay.textStyle?.fontSize ?? 16}px`,
             color: overlay.textStyle?.color ?? "#ffffff",
             outline: 'none',
-            cursor: state.isPlaying ? 'default' : 'text',
+            cursor: isEditingText ? 'text' : (state.isPlaying ? 'default' : 'pointer'),
             userSelect: state.isPlaying ? 'none' : 'text',
+            padding: '4px',
+            minHeight: '1em',
           }}
         >
           {overlay.text || "Type here"}

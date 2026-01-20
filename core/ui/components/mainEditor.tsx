@@ -7,7 +7,6 @@ import { initialEditorState } from "@/core/applications/states/editorState";
 import { EditorProvider } from "@/core/applications/contexts/EditorContext";
 
 import { Timeline } from "@/core/ui/components/timeline/Timeline";
-import { ExportButton } from "./exportButton";
 import { VideoPreview } from "./videoPreview";
 import { EditorToolbar } from "./EditorToolbar";
 
@@ -22,7 +21,6 @@ export function MainEditor() {
         <EditorToolbar/>
         <VideoPreview />
         <Timeline />
-        <ExportButton />
       </EditorProvider>
     </div>  
   );

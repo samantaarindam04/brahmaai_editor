@@ -6,14 +6,6 @@ import { useTimelineScale } from "@/core/applications/hooks/useTimelineScale";
 import TimelineSegment from "./timelineSegment";
 import Playhead from "./Playhead";
 
-/**
- * Timeline
- *
- * - Shared coordinate system for ruler + tracks
- * - Overlay rendering fixed
- * - Scroll sync corrected
- */
-
 const TRACK_LABEL_WIDTH = 128; // px (w-32)
 
 export function Timeline() {
@@ -144,7 +136,6 @@ export function Timeline() {
         <div
           style={{
             width: timelineWidth + TRACK_LABEL_WIDTH,
-            // paddingLeft: TRACK_LABEL_WIDTH,
           }}
         >
           {/* Overlay Track */}
@@ -180,15 +171,18 @@ export function Timeline() {
                     onMouseDown={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      dispatch({
-                        type: "SET_TIME",
-                        payload: absoluteStartTime,
-                      });
-
+                      
+                      // ✅ FIXED: Only select overlay, don't change playhead time
                       dispatch({
                         type: "SELECT_OVERLAY",
                         payload: { overlayId: overlay.id },
                       });
+
+                      // ✅ REMOVED: This was causing the playhead to jump
+                      // dispatch({
+                      //   type: "SET_TIME",
+                      //   payload: absoluteStartTime,
+                      // });
 
                       const startX = e.clientX;
                       const initialStartTime = timing.startTime;

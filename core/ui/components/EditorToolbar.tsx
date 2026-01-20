@@ -4,7 +4,6 @@ import { ChangeEvent } from "react";
 import { useEditor } from "@/core/applications/contexts/EditorContext";
 import { VideoSegment } from "@/core/domain/entities/videoSegment";
 import { findActiveSegment } from "@/core/domain/services/findActiveSegment";
-import { TextStyleControls } from "./TextStyleControls";
 
 export function EditorToolbar() {
   const { state, dispatch } = useEditor();
@@ -69,6 +68,9 @@ export function EditorToolbar() {
     });
   }
 
+  function handleExportJson() {
+    console.log("exported")
+  }
 
   return (
     <div className="editor-toolbar border-b border-gray-700 p-3 flex items-center justify-between bg-gray-900">
@@ -103,6 +105,15 @@ export function EditorToolbar() {
         >
           {state.isPlaying ? "⏸ Pause" : "▶ Play"}
         </button>
+
+        {/* Export JSON */}
+        <button
+          onClick={handleExportJson}
+          className="bg-white px-3 py-1 rounded-md text-sm"
+        >
+          Export JSON
+        </button>
+
       </div>
     </div>
   );
