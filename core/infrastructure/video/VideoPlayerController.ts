@@ -67,10 +67,10 @@ export class VideoPlayerController {
     }
   }
 
-play(): void {
+  play(): void {
     if (!this.player) return;
     this.player.play();
-  
+
   }
 
   pause(): void {
